@@ -1,0 +1,4 @@
+# Louis owns every path, including the policy files and CODEOWNERS itself.
+* @lhpoulin-cmyk
+/.github/ @lhpoulin-cmyk
+/policy/ @lhpoulin-cmyk
