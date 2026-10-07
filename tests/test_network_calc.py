@@ -14,6 +14,13 @@ from network_calc import describe_network
 
 
 class NetworkCalcTests(unittest.TestCase):
+    @staticmethod
+    def run_cli(*arguments: str) -> str:
+        command = [sys.executable, "-m", "network_calc", *arguments]
+        return subprocess.run(
+            command, cwd=ROOT, check=True, capture_output=True, text=True
+        ).stdout
+
     def test_ipv4_host_input_is_normalized(self):
         self.assertEqual(
             {
@@ -42,11 +49,29 @@ class NetworkCalcTests(unittest.TestCase):
             describe_network("not-a-network")
 
     def test_cli_output_is_deterministic_json(self):
-        command = [sys.executable, "-m", "network_calc", "198.51.100.7/32"]
-        first = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
-        second = subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
-        self.assertEqual(first.stdout, second.stdout)
-        self.assertEqual("198.51.100.7/32", json.loads(first.stdout)["network"])
+        first = self.run_cli("198.51.100.7/32")
+        second = self.run_cli("198.51.100.7/32")
+        self.assertEqual(first, second)
+        self.assertEqual("198.51.100.7/32", json.loads(first)["network"])
+
+    def test_default_cli_output_remains_compact_and_compatible(self):
+        self.assertEqual(
+            '{"address_count": 1, "broadcast_address": "198.51.100.7", '
+            '"first_address": "198.51.100.7", "ip_version": 4, '
+            '"last_address": "198.51.100.7", "netmask": "255.255.255.255", '
+            '"network": "198.51.100.7/32", '
+            '"network_address": "198.51.100.7", "prefix_length": 32}\n',
+            self.run_cli("198.51.100.7/32"),
+        )
+
+    def test_pretty_output_is_deterministic_and_semantically_equivalent(self):
+        compact = self.run_cli("2001:db8::9/126")
+        first = self.run_cli("--pretty", "2001:db8::9/126")
+        second = self.run_cli("--pretty", "2001:db8::9/126")
+        self.assertEqual(first, second)
+        self.assertEqual(json.loads(compact), json.loads(first))
+        self.assertEqual("2001:db8::8/126", json.loads(first)["network"])
+        self.assertTrue(first.startswith('{\n  "address_count"'))
 
 
 if __name__ == "__main__":

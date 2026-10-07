@@ -25,13 +25,21 @@ def describe_network(value: str) -> dict[str, object]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="indent JSON output for human-readable display",
+    )
     parser.add_argument("network", help="IPv4 or IPv6 address with prefix length")
     args = parser.parse_args(argv)
     try:
         result = describe_network(args.network)
     except ValueError as error:
         parser.error(str(error))
-    print(json.dumps(result, sort_keys=True, separators=(", ", ": ")))
+    if args.pretty:
+        print(json.dumps(result, sort_keys=True, indent=2))
+    else:
+        print(json.dumps(result, sort_keys=True, separators=(", ", ": ")))
     return 0
 
 

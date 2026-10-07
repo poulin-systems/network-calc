@@ -65,6 +65,8 @@ $ python3 -m network_calc 192.0.2.130/26
 
 The input is parsed with Python's standard-library `ipaddress` module using
 non-strict network semantics. Output keys and JSON formatting are stable.
+Pass `--pretty` before the network to emit the same deterministic JSON object
+with indentation for human-readable display; the default remains compact.
 
 ## Development
 
